@@ -1,39 +1,31 @@
-import throttle from 'lodash.throttle';
+import _ from 'lodash';
+import '../../node_modules/lodash.throttle';
 const form = document.querySelector(".feedback-form");
-
-const storage = "feedback-form-state";
-
-let formValue = {
-    email: '',
-    message: '',
+const email = document.querySelector("[name='email']");
+const message = document.querySelector("[name='message']");
+const formObj = {
+  email: email.value,
+  message: message.value,
 };
-form.addEventListener("submit", onFormSubmit);
-form.addEventListener('input', throttle(onFormInput, 500));
-
-function onFormInput(event){
-    formValue[event.target.name] = event.target.value;
-    localStorage.setItem(storage, JSON.stringify(formValue));
+if (localStorage.getItem("feedback-form-state")) {
+  const jsonFormObj = JSON.parse(localStorage.getItem("feedback-form-state"));
+  email.value = formObj.email = jsonFormObj.email;
+  message.value = formObj.message = jsonFormObj.message;
+  console.log(jsonFormObj.email, jsonFormObj.message )
+  console.log(formObj);
 }
+form.addEventListener("input", _.throttle(() => {
+  formObj.email = email.value;  
+  formObj.message = message.value;
+  // console.log(formObj.email, formObj.message);
+  localStorage.setItem("feedback-form-state", JSON.stringify(formObj));
+}),500);
 
-if (localStorage.hasOwnProperty(storage)) {
-  formValue = JSON.parse(localStorage.getItem(storage));
-
-  for (let i in formValue) {
-    form[i].value = formValue[i];
-  }
-}
-
-function onFormSubmit(event) {
-    event.preventDefault();
-    const {
-        elements: { email, message }
-      } = event.currentTarget;
-    
-      if (email.value === "" || message.value === "") {
-        return alert("Please fill in all the fields!");
-      }
-      localStorage.removeItem(storage);
-      form.reset();
-
-      console.log(formValue);
-}
+form.addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (formObj.email==email.value && formObj.message==message.value) {
+    console.log(formObj);
+  } 
+  form.reset();
+  localStorage.removeItem("feedback-form-state"); 
+ })
